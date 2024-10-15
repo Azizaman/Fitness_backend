@@ -134,4 +134,7 @@ def serve_video(filename):
     return send_from_directory(FRONTEND_VIDEOS_FOLDER, filename)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+
+    port = int(os.environ.get('PORT', 5000))  # Get the port from the environment or default to 5000
+    app.run(host='0.0.0.0', port=port, debug=False)  # Use 0.0.0.0 for external access
+
