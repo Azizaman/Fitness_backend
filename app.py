@@ -45,7 +45,7 @@ def process_video():
         return jsonify({'error': 'Error opening video file'}), 500
 
     # Use MP4V codec for intermediate video
-    fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
     fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
