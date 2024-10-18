@@ -7,6 +7,7 @@ import subprocess
 from process_frame import ProcessFrame  # Assuming you have this module for frame processing
 from thresholds import get_thresholds_beginner  # Assuming you have this module for thresholds
 from utils import get_mediapipe_pose  # Assuming you have this module for pose estimation
+import imageio_ffmpeg as ffmpeg  # Added for FFmpeg functionality
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS for all routes
@@ -45,7 +46,7 @@ def process_video():
         return jsonify({'error': 'Error opening video file'}), 500
 
     # Use MP4V codec for intermediate video
-    fourcc = cv2.VideoWriter_fourcc(*'H264')
+    fourcc = cv2.VideoWriter_fourcc(*'MP4V')
     fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -88,10 +89,12 @@ def process_video():
         os.remove(temp_video_path)
         print(f"Deleted temporary video: {temp_video_path}")
 
-    # Convert processed video to H.264 format using FFmpeg
+    # Convert processed video to H.264 format using FFmpeg via imageio_ffmpeg
     try:
         ffmpeg_command = f'ffmpeg -i "{processed_video_path}" -vcodec libx264 -acodec aac -strict -2 "{final_processed_video_path}"'
         subprocess.run(ffmpeg_command, shell=True, check=True)
+        print(f"FFmpeg path: {ffmpeg.get_ffmpeg_exe()}")
+
         print(f"Converted video saved to: {final_processed_video_path}")
     except subprocess.CalledProcessError as e:
         print(f"FFmpeg error: {e}")
@@ -107,7 +110,7 @@ def process_video():
         return jsonify({'error': 'Final processed video was not created'}), 500
 
     # Return the URL of the processed video for download
-    processed_video_url = f'http://localhost:5000/download-video/{os.path.basename(final_processed_video_path)}'
+    processed_video_url = f'http://localhost:8000/download-video/{os.path.basename(final_processed_video_path)}'
     return jsonify({'message': 'Video processed and converted successfully', 'videoUrl': processed_video_url})
 
 @app.route('/download-video/<path:filename>', methods=['GET'])
@@ -135,6 +138,5 @@ def serve_video(filename):
 
 if __name__ == '__main__':
 
-    port = int(os.environ.get('PORT', 5000))  # Get the port from the environment or default to 5000
-    app.run(host='0.0.0.0', port=port, debug=False)  # Use 0.0.0.0 for external access
-
+    port = int(os.environ.get('PORT', 8000))  # Get the port from the environment or default to 8000
+    app.run(host='0.0.0.0', port=port, debug=True)  # Use 0.0.0.0 for external access
